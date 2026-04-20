@@ -2,9 +2,7 @@
 
 # Custom sandbox aligned to NVIDIA OpenShell-Community sandboxes/openclaw-nvidia
 # This version installs OpenClaw from source via configurable Git URL/ref.
-
-ARG BASE_IMAGE=ghcr.io/nvidia/openshell-community/sandboxes/openclaw:latest
-FROM ${BASE_IMAGE}
+FROM BASE_IMAGE=ghcr.io/nvidia/openshell-community/sandboxes/base:latest
 
 USER root
 ENV DEBIAN_FRONTEND=noninteractive
