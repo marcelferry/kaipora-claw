@@ -1,0 +1,217 @@
+version: 1
+filesystem_policy:
+  include_workdir: true
+  read_only:
+    - /usr
+    - /lib
+    - /proc
+    - /dev/urandom
+    - /app
+    - /etc
+    - /var/log
+    - /opt/company-data
+  read_write:
+    - /sandbox
+    - /tmp
+    - /dev/null
+    - /sandbox/shared
+landlock:
+  compatibility: best_effort
+process:
+  run_as_user: sandbox
+  run_as_group: sandbox
+network_policies:
+  npm:
+    name: npm
+    binaries:
+      - /usr/bin/node
+      - /usr/bin/npm
+      - /usr/bin/npx
+      - /usr/local/bin/node
+      - /usr/local/bin/npm
+      - /usr/local/bin/npx
+    endpoints:
+      - host: registry.npmjs.org
+        port: 443
+        protocol: rest
+        access: read-only
+        enforcement: enforce
+  pypi:
+    name: pypi
+    binaries:
+      - /sandbox/.venv/bin/pip
+      - /sandbox/.venv/bin/python
+      - /sandbox/.venv/bin/python3
+      - /usr/local/bin/pip
+      - /usr/local/bin/python
+      - /usr/local/bin/python3
+      - /usr/local/bin/uv
+    endpoints:
+      - host: pypi.org
+        port: 443
+        protocol: rest
+        access: read-only
+        enforcement: enforce
+      - host: files.pythonhosted.org
+        port: 443
+        protocol: rest
+        access: read-only
+        enforcement: enforce
+  azure-management:
+    name: azure-management
+    binaries:
+      - /usr/bin/az
+      - /usr/local/bin/az
+    endpoints:
+      - host: management.azure.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: login.microsoftonline.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: graph.microsoft.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+  azure-devops:
+    name: azure-devops
+    binaries:
+      - /usr/bin/git
+      - /usr/bin/curl
+      - /usr/bin/node
+      - /usr/bin/npm
+      - /usr/local/bin/git
+      - /usr/local/bin/curl
+    endpoints:
+      - host: dev.azure.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: vssps.dev.azure.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: pkgs.dev.azure.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+  microsoft-identity:
+    name: microsoft-identity
+    binaries:
+      - /usr/bin/az
+      - /usr/local/bin/az
+      - /usr/bin/curl
+      - /usr/local/bin/curl
+    endpoints:
+      - host: login.microsoftonline.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: login.live.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: graph.microsoft.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+  github:
+    name: github
+    binaries:
+      - /usr/bin/git
+      - /usr/bin/gh
+      - /usr/bin/curl
+      - /usr/local/bin/git
+      - /usr/local/bin/gh
+      - /usr/local/bin/curl
+    endpoints:
+      - host: api.github.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: github.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: objects.githubusercontent.com
+        port: 443
+        protocol: rest
+        access: read-only
+        enforcement: enforce
+      - host: raw.githubusercontent.com
+        port: 443
+        protocol: rest
+        access: read-only
+        enforcement: enforce
+  claude_code:
+    name: claude_code
+    binaries:
+      - /usr/local/bin/claude
+      - /usr/bin/node
+    endpoints:
+      - host: api.anthropic.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+        tls: terminate
+      - host: statsig.anthropic.com
+        port: 443
+      - host: sentry.io
+        port: 443
+      - host: raw.githubusercontent.com
+        port: 443
+      - host: platform.claude.com
+        port: 443
+  nvidia:
+    name: nvidia
+    binaries:
+      - /usr/bin/curl
+      - /bin/bash
+      - /usr/local/bin/opencode
+    endpoints:
+      - host: integrate.api.nvidia.com
+        port: 443
+  nvidia_web:
+    name: nvidia_web
+    binaries:
+      - /usr/bin/curl
+    endpoints:
+      - host: nvidia.com
+        port: 443
+      - host: www.nvidia.com
+        port: 443
+  github_rest_api:
+    name: github-rest-api
+    binaries:
+      - /usr/local/bin/claude
+      - /usr/bin/gh
+    endpoints:
+      - host: api.github.com
+        port: 443
+        protocol: rest
+        tls: terminate
+        enforcement: enforce
+        rules:
+          - allow:
+              method: GET
+              path: "/**"
+          - allow:
+              method: HEAD
+              path: "/**"
+          - allow:
+              method: OPTIONS
+              path: "/**"

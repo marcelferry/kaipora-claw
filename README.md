@@ -1,108 +1,104 @@
-# OpenShell Custom Sandbox Package
+# OpenShell Custom Sandbox Package v3
 
-Pacote base para criar uma sandbox customizada no estilo OpenShell/OpenShell-Community, com ferramentas pré-instaladas e políticas organizadas por presets.
+Pacote evoluído para manter a customização pedida e, ao mesmo tempo, suportar o padrão de instalação do sandbox `openclaw` da NVIDIA.
 
-## O que este pacote entrega
+## O que mudou nesta versão
 
-- `Dockerfile` baseado em `ghcr.io/nvidia/openshell-community/sandboxes/base:latest`
-- baseline policy em `policy/base-policy.yaml`
-- presets de rede em `policy/presets/`
-- composições prontas em `policy/composed/`
-- script para compor políticas: `scripts/compose_policy.py`
+Além da base customizada anterior, esta versão incorpora o modelo do sandbox `openclaw` da NVIDIA:
 
-## Ferramentas já incluídas no Dockerfile
+- instala `openclaw` via npm global
+- adiciona o helper `openclaw-start`
+- prepara o diretório `/sandbox/.openclaw`
+- mantém a baseline policy customizada como padrão da imagem
+- adiciona um preset `openclaw-upstream.yaml` com regras inspiradas no sandbox upstream
+- adiciona uma composição pronta `openclaw-enterprise-azure.yaml`
 
-Instaladas automaticamente:
+## Regra de precedência aplicada
+
+Quando houve sobreposição entre o modelo NVIDIA e as suas escolhas:
+
+- ferramentas customizadas foram preservadas
+- a baseline policy customizada continuou como policy padrão da imagem
+- as regras OpenClaw upstream entraram como preset/composição adicional, não como override automático
+
+## Ferramentas incluídas no Dockerfile
+
 - nano
 - vim / vi
 - jq
 - ffmpeg
 - ripgrep
 - azure-cli
+- gog
+- camsnap
 - mcporter
 - openai-whisper
-
-Pendentes de origem/versionamento explícito:
-- goc
-- camsnap
+- yt-dlp
 - nano-pdf
+- openclaw
 
-Esses três ficaram intencionalmente fora da instalação automática para evitar um build frágil enquanto a origem oficial e o método de distribuição não estiverem fechados.
+## Arquivos principais
 
-## Estrutura de policies
+- `Dockerfile`
+- `openclaw-start.sh`
+- `policy/base-policy.yaml`
+- `policy/presets/openclaw-upstream.yaml`
+- `policy/composed/openclaw-enterprise-azure.yaml`
 
-### Baseline
-`policy/base-policy.yaml`
+## Como subir no estilo OpenClaw da NVIDIA
 
-Mantém:
-- filesystem controlado
-- processo rodando como `sandbox`
-- sem egress liberado por padrão (`network_policies: {}`)
-
-### Presets
-Arquivos em `policy/presets/`:
-- `npm.yaml`
-- `pypi.yaml`
-- `azure.yaml`
-- `azure-devops.yaml`
-- `microsoft-identity.yaml`
-- `google-apis.yaml`
-- `github.yaml`
-
-### Policies compostas já prontas
-Arquivos em `policy/composed/`:
-- `balanced.yaml`
-- `enterprise-azure.yaml`
-- `full-dev.yaml`
-
-## Como compor uma policy nova
-
-Instale a dependência do script:
+### Criar a sandbox
 
 ```bash
-python3 -m pip install -r scripts/requirements.txt
+docker build -t my-openshell-openclaw-sandbox .
 ```
 
-Monte uma policy combinando presets:
+Depois, com OpenShell:
 
 ```bash
-python3 scripts/compose_policy.py   --base policy/base-policy.yaml   --preset-dir policy/presets   --presets npm pypi azure azure-devops microsoft-identity   --output policy/composed/my-enterprise.yaml
+openshell sandbox create --from ./ --forward 18789 -- openclaw-start
 ```
 
-## Como usar a policy composta
+O helper `openclaw-start` executa:
 
-### 1. Embutir na imagem
-No Dockerfile, já está apontando para:
+1. `openclaw onboard`
+2. `openclaw gateway run` em background
+3. imprime a URL local da UI
+
+## Policies
+
+### Padrão da imagem
+
+A imagem continua embutindo por padrão:
 
 ```dockerfile
 COPY policy/base-policy.yaml /etc/openshell/policy.yaml
 ```
 
-Se quiser usar outra por padrão, troque para algo como:
+### Preset inspirado no upstream
 
-```dockerfile
-COPY policy/composed/enterprise-azure.yaml /etc/openshell/policy.yaml
-```
+O preset `policy/presets/openclaw-upstream.yaml` traz regras alinhadas ao sandbox `openclaw` da NVIDIA para:
 
-### 2. Aplicar depois via OpenShell
-Você também pode subir a sandbox com a baseline e depois aplicar uma policy composta com o fluxo de `policy set`, conforme seu padrão operacional.
+- `claude_code`
+- `nvidia`
+- `nvidia_web`
+- `github_rest_api`
 
-## Build da imagem
+### Composição pronta
 
-```bash
-docker build -t my-openshell-sandbox .
-```
+`policy/composed/openclaw-enterprise-azure.yaml` junta:
 
-## Próximos ajustes recomendados
+- baseline customizada
+- npm
+- pypi
+- azure
+- azure-devops
+- microsoft-identity
+- github
+- regras OpenClaw upstream
 
-1. Fixar versão exata do `BASE_IMAGE`
-2. Fixar versão do `mcporter`
-3. Definir origem oficial para:
-   - goc
-   - camsnap
-   - nano-pdf
-4. Criar presets adicionais se fizer sentido:
-   - huggingface
-   - gemini
-   - artifact registries
-   - docker registries
+## Observações
+
+- A baseline continua deny-by-default para rede quando usada sozinha.
+- Os presets/composições permitem abrir acesso de forma intencional.
+- As versões de `gog`, `camsnap` e `openclaw` estão pinadas no Dockerfile para deixar o build mais reprodutível.
