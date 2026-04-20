@@ -34,6 +34,7 @@ network_policies:
       - path: /usr/bin/node
       - path: /usr/bin/npm
       - path: /usr/bin/npx
+
   pypi:
     name: pypi
     endpoints:
@@ -52,6 +53,7 @@ network_policies:
       - path: /usr/local/bin/python
       - path: /usr/local/bin/python3
       - path: /usr/local/bin/uv
+
   azure:
     name: azure
     endpoints:
@@ -64,6 +66,7 @@ network_policies:
     binaries:
       - path: /usr/bin/az
       - path: /bin/bash
+
   azure_devops:
     name: azure-devops
     endpoints:
@@ -77,6 +80,7 @@ network_policies:
       - path: /usr/bin/git
       - path: /usr/bin/curl
       - path: /bin/bash
+
   microsoft_identity:
     name: microsoft-identity
     endpoints:
@@ -88,18 +92,92 @@ network_policies:
       - path: /usr/bin/curl
       - path: /usr/bin/node
       - path: /bin/bash
+
   github:
     name: github
     endpoints:
       - host: github.com
         port: 443
+    binaries:
+      - path: /usr/bin/git
+
+  github_rest_api:
+    name: github-rest-api
+    endpoints:
       - host: api.github.com
         port: 443
         protocol: rest
         tls: terminate
         enforcement: enforce
-        access: read-only
+        rules:
+          - allow:
+              method: GET
+              path: "/**"
+          - allow:
+              method: HEAD
+              path: "/**"
+          - allow:
+              method: OPTIONS
+              path: "/**"
     binaries:
-      - path: /usr/bin/git
+      - path: /usr/local/bin/claude
       - path: /usr/bin/gh
+
+  allow_navigator_navigator_svc_cluster_local_8080:
+    name: allow_navigator_navigator_svc_cluster_local_8080
+    endpoints:
+      - host: navigator.navigator.svc.cluster.local
+        port: 8080
+    binaries:
+      - path: /usr/bin/node
+
+  allow_registry_npmjs_org_443:
+    name: allow_registry_npmjs_org_443
+    endpoints:
+      - host: registry.npmjs.org
+        port: 443
+    binaries:
+      - path: /usr/bin/node
+
+  claude_code:
+    name: claude_code
+    endpoints:
+      - host: api.anthropic.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+        tls: terminate
+      - host: statsig.anthropic.com
+        port: 443
+      - host: sentry.io
+        port: 443
+      - host: raw.githubusercontent.com
+        port: 443
+      - host: platform.claude.com
+        port: 443
+    binaries:
+      - path: /usr/local/bin/claude
+      - path: /usr/bin/node
+
+  nvidia:
+    name: nvidia
+    endpoints:
+      - host: integrate.api.nvidia.com
+        port: 443
+    binaries:
+      - path: /usr/bin/curl
+      - path: /bin/bash
+      - path: /usr/local/bin/opencode
+      - path: /usr/bin/python3
+      - path: /usr/bin/python3.12
+
+  nvidia_web:
+    name: nvidia_web
+    endpoints:
+      - host: nvidia.com
+        port: 443
+      - host: www.nvidia.com
+        port: 443
+    binaries:
       - path: /usr/bin/curl

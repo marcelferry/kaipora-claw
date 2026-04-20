@@ -1,31 +1,17 @@
+version: 1
 network_policies:
   github:
     name: github
-    binaries:
-      - /usr/bin/git
-      - /usr/bin/gh
-      - /usr/bin/curl
-      - /usr/local/bin/git
-      - /usr/local/bin/gh
-      - /usr/local/bin/curl
     endpoints:
+      - host: github.com
+        port: 443
       - host: api.github.com
         port: 443
         protocol: rest
-        access: read-write
+        tls: terminate
         enforcement: enforce
-      - host: github.com
-        port: 443
-        protocol: rest
-        access: read-write
-        enforcement: enforce
-      - host: objects.githubusercontent.com
-        port: 443
-        protocol: rest
         access: read-only
-        enforcement: enforce
-      - host: raw.githubusercontent.com
-        port: 443
-        protocol: rest
-        access: read-only
-        enforcement: enforce
+    binaries:
+      - path: /usr/bin/git
+      - path: /usr/bin/gh
+      - path: /usr/bin/curl

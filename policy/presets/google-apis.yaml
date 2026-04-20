@@ -1,26 +1,15 @@
+version: 1
 network_policies:
-  google-apis:
+  google_apis:
     name: google-apis
-    binaries:
-      - /usr/bin/curl
-      - /usr/local/bin/curl
-      - /usr/bin/python3
-      - /usr/local/bin/python3
-      - /usr/bin/node
-      - /usr/local/bin/node
     endpoints:
-      - host: oauth2.googleapis.com
-        port: 443
-        protocol: rest
-        access: read-write
-        enforcement: enforce
       - host: www.googleapis.com
         port: 443
-        protocol: rest
-        access: read-write
-        enforcement: enforce
-      - host: storage.googleapis.com
+      - host: oauth2.googleapis.com
         port: 443
-        protocol: rest
-        access: read-write
-        enforcement: enforce
+      - host: accounts.google.com
+        port: 443
+    binaries:
+      - path: /usr/bin/curl
+      - path: /usr/bin/node
+      - path: /bin/bash

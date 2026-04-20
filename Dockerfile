@@ -1,43 +1,100 @@
 # syntax=docker/dockerfile:1.4
 
-ARG BASE_IMAGE=ghcr.io/nvidia/openshell-community/sandboxes/base:latest
+# Custom sandbox aligned to NVIDIA OpenShell-Community sandboxes/openclaw-nvidia
+# Upstream reference:
+#   BASE_IMAGE=ghcr.io/nvidia/openshell-community/sandboxes/openclaw:latest
+#   add jq
+#   copy policy.yaml to /etc/openshell/policy.yaml
+#   copy openclaw-nvidia-start.sh
+#   install gRPC/js-yaml runtime deps for policy proxy
+#
+# This custom image preserves user-requested customizations when overlapping with upstream.
+
+ARG BASE_IMAGE=ghcr.io/nvidia/openshell-community/sandboxes/openclaw:latest
 FROM ${BASE_IMAGE}
 
 USER root
-
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Base packages requested for the custom sandbox.
-RUN apt-get update && apt-get install -y --no-install-recommends     jq     ffmpeg     ripgrep     vim-tiny     nano     ca-certificates     curl     git     unzip     gnupg     lsb-release     build-essential     && rm -rf /var/lib/apt/lists/*
+# Base tools requested by user
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    jq \
+    ffmpeg \
+    ripgrep \
+    vim-tiny \
+    nano \
+    ca-certificates \
+    curl \
+    git \
+    unzip \
+    gnupg \
+    lsb-release \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 # Azure CLI
-RUN mkdir -p /etc/apt/keyrings     && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg     && chmod go+r /etc/apt/keyrings/microsoft.gpg     && AZ_DIST=$(lsb_release -cs)     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ ${AZ_DIST} main"        > /etc/apt/sources.list.d/azure-cli.list     && apt-get update     && apt-get install -y --no-install-recommends azure-cli     && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /etc/apt/keyrings \
+    && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg \
+    && chmod go+r /etc/apt/keyrings/microsoft.gpg \
+    && AZ_DIST=$(lsb_release -cs) \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ ${AZ_DIST} main" \
+       > /etc/apt/sources.list.d/azure-cli.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends azure-cli \
+    && rm -rf /var/lib/apt/lists/*
 
-# gogcli (pinned release)
+# npm / Python tools requested by user
+RUN npm install -g mcporter
+RUN /sandbox/.venv/bin/pip install --no-cache-dir \
+    openai-whisper \
+    "yt-dlp[default]" \
+    nano-pdf
+
+# gogcli pinned from user-provided reference
 ARG GOGCLI_VERSION=0.12.0
-RUN ARCH="$(dpkg --print-architecture)" &&     case "$ARCH" in       amd64) GOG_ARCH="x86_64" ;;       arm64) GOG_ARCH="arm64" ;;       *) echo "Unsupported arch: $ARCH" && exit 1 ;;     esac &&     curl -fsSL "https://github.com/steipete/gogcli/releases/download/v${GOGCLI_VERSION}/gogcli_${GOGCLI_VERSION}_linux_${GOG_ARCH}.tar.gz" -o /tmp/gogcli.tgz &&     tar -xzf /tmp/gogcli.tgz -C /tmp &&     install -m 0755 /tmp/gog /usr/local/bin/gog &&     rm -rf /tmp/gog /tmp/gogcli.tgz
+RUN ARCH="$(dpkg --print-architecture)" && \
+    case "$ARCH" in \
+      amd64) GOG_ARCH="x86_64" ;; \
+      arm64) GOG_ARCH="arm64" ;; \
+      *) echo "Unsupported arch: $ARCH" && exit 1 ;; \
+    esac && \
+    curl -fsSL "https://github.com/steipete/gogcli/releases/download/v${GOGCLI_VERSION}/gogcli_${GOGCLI_VERSION}_linux_${GOG_ARCH}.tar.gz" -o /tmp/gogcli.tgz && \
+    tar -xzf /tmp/gogcli.tgz -C /tmp && \
+    install -m 0755 /tmp/gog /usr/local/bin/gog && \
+    rm -rf /tmp/gog /tmp/gogcli.tgz
 
-# camsnap (pinned release)
+# camsnap pinned for reproducibility
 ARG CAMSNAP_VERSION=0.2.0
-RUN ARCH="$(dpkg --print-architecture)" &&     case "$ARCH" in       amd64) CAMSNAP_ARCH="x86_64" ;;       arm64) CAMSNAP_ARCH="arm64" ;;       *) echo "Unsupported arch: $ARCH" && exit 1 ;;     esac &&     curl -fsSL "https://github.com/steipete/camsnap/releases/download/v${CAMSNAP_VERSION}/camsnap_${CAMSNAP_VERSION}_linux_${CAMSNAP_ARCH}.tar.gz" -o /tmp/camsnap.tgz &&     tar -xzf /tmp/camsnap.tgz -C /tmp &&     install -m 0755 /tmp/camsnap /usr/local/bin/camsnap &&     rm -rf /tmp/camsnap /tmp/camsnap.tgz
+RUN ARCH="$(dpkg --print-architecture)" && \
+    case "$ARCH" in \
+      amd64) CAM_ARCH="x86_64" ;; \
+      arm64) CAM_ARCH="arm64" ;; \
+      *) echo "Unsupported arch: $ARCH" && exit 1 ;; \
+    esac && \
+    curl -fsSL "https://github.com/steipete/camsnap/releases/download/v${CAMSNAP_VERSION}/camsnap_${CAMSNAP_VERSION}_linux_${CAM_ARCH}.tar.gz" -o /tmp/camsnap.tgz && \
+    tar -xzf /tmp/camsnap.tgz -C /tmp && \
+    install -m 0755 /tmp/camsnap /usr/local/bin/camsnap && \
+    rm -rf /tmp/camsnap /tmp/camsnap.tgz
 
-# Node-based tools + OpenClaw, following the NVIDIA openclaw sandbox pattern.
-ARG OPENCLAW_VERSION=2026.3.11
-RUN npm install -g     mcporter     openclaw@${OPENCLAW_VERSION}
+# Keep the upstream openclaw-nvidia runtime expectations:
+# - same policy location
+# - same startup script concept
+# - same extra runtime deps for policy proxy/gRPC sync
+RUN mkdir -p /etc/openshell
+COPY policy/composed/enterprise-azure-openclaw-nvidia.yaml /etc/openshell/policy.yaml
+COPY scripts/openclaw-nvidia-start.sh /usr/local/bin/openclaw-nvidia-start
+RUN chmod +x /usr/local/bin/openclaw-nvidia-start
 
-# Python-based tools
-RUN /sandbox/.venv/bin/pip install --no-cache-dir     openai-whisper     "yt-dlp[default]"     nano-pdf
+# Runtime deps used by upstream openclaw-nvidia policy-proxy stack
+RUN npm install -g @grpc/grpc-js @grpc/proto-loader js-yaml
+RUN npm install -g @hono/node-server@1.19.11
+RUN npm install -g tar@7.5.11 && npm --prefix "$(npm root -g)/openclaw" update tar || true
 
-# OpenClaw helper following the NVIDIA community sandbox pattern.
-COPY openclaw-start.sh /usr/local/bin/openclaw-start
-RUN chmod +x /usr/local/bin/openclaw-start
+RUN npm install -g git+https://github.com/<org-ou-user>/<repo>.git#minha-branch
 
-# Workspace paths
-RUN mkdir -p /sandbox/shared /opt/company-data /sandbox/.openclaw     && chown -R sandbox:sandbox /sandbox/shared /opt/company-data /sandbox/.openclaw /sandbox
-
-# Baseline policy active in the image.
-# Keep the custom baseline as the default; upstream OpenClaw-style rules are available as presets/compositions.
-COPY policy/base-policy.yaml /etc/openshell/policy.yaml
+# Workspace prep
+RUN mkdir -p /sandbox/.openclaw /sandbox/shared /opt/company-data \
+    && chown -R sandbox:sandbox /sandbox/.openclaw /sandbox/shared /opt/company-data /etc/openshell /sandbox
 
 USER sandbox
 ENTRYPOINT ["/bin/bash"]

@@ -1,27 +1,26 @@
-# OpenShell Custom Sandbox Package v3
+# OpenShell Custom Sandbox Package v4
 
-Pacote evoluído para manter a customização pedida e, ao mesmo tempo, suportar o padrão de instalação do sandbox `openclaw` da NVIDIA.
+This package is explicitly aligned to `NVIDIA/OpenShell-Community/sandboxes/openclaw-nvidia`
+instead of `sandboxes/openclaw`.
 
-## O que mudou nesta versão
+## What changed in this version
 
-Além da base customizada anterior, esta versão incorpora o modelo do sandbox `openclaw` da NVIDIA:
+- Base image now follows the upstream `openclaw-nvidia` direction:
+  `ghcr.io/nvidia/openshell-community/sandboxes/openclaw:latest`
+- Keeps the upstream startup pattern via `openclaw-nvidia-start`
+- Preserves user-requested customizations where they overlap:
+  custom tools, Python/npm CLIs, and policy presets
+- Uses a composed policy as the baked default:
+  `policy/composed/enterprise-azure-openclaw-nvidia.yaml`
 
-- instala `openclaw` via npm global
-- adiciona o helper `openclaw-start`
-- prepara o diretório `/sandbox/.openclaw`
-- mantém a baseline policy customizada como padrão da imagem
-- adiciona um preset `openclaw-upstream.yaml` com regras inspiradas no sandbox upstream
-- adiciona uma composição pronta `openclaw-enterprise-azure.yaml`
+## Upstream references used
 
-## Regra de precedência aplicada
+- `sandboxes/openclaw-nvidia/README.md`
+- `sandboxes/openclaw-nvidia/Dockerfile`
+- `sandboxes/openclaw-nvidia/policy.yaml`
+- `sandboxes/openclaw-nvidia/openclaw-nvidia-start.sh`
 
-Quando houve sobreposição entre o modelo NVIDIA e as suas escolhas:
-
-- ferramentas customizadas foram preservadas
-- a baseline policy customizada continuou como policy padrão da imagem
-- as regras OpenClaw upstream entraram como preset/composição adicional, não como override automático
-
-## Ferramentas incluídas no Dockerfile
+## Included custom tools
 
 - nano
 - vim / vi
@@ -29,76 +28,43 @@ Quando houve sobreposição entre o modelo NVIDIA e as suas escolhas:
 - ffmpeg
 - ripgrep
 - azure-cli
-- gog
-- camsnap
 - mcporter
 - openai-whisper
 - yt-dlp
 - nano-pdf
-- openclaw
+- gog
+- camsnap
 
-## Arquivos principais
+## Policy layout
 
-- `Dockerfile`
-- `openclaw-start.sh`
 - `policy/base-policy.yaml`
-- `policy/presets/openclaw-upstream.yaml`
-- `policy/composed/openclaw-enterprise-azure.yaml`
+- `policy/presets/*.yaml`
+- `policy/composed/balanced.yaml`
+- `policy/composed/enterprise-azure.yaml`
+- `policy/composed/enterprise-azure-openclaw-nvidia.yaml`
 
-## Como subir no estilo OpenClaw da NVIDIA
+The baked image default is:
+- `policy/composed/enterprise-azure-openclaw-nvidia.yaml`
 
-### Criar a sandbox
+This is intentional: it keeps your requested Azure/Python/Node presets while also
+bringing in the key `openclaw-nvidia`-style network allowances.
+
+## Build
 
 ```bash
-docker build -t my-openshell-openclaw-sandbox .
+docker build -t openshell-custom-openclaw-nvidia .
 ```
 
-Depois, com OpenShell:
+## Create sandbox
 
 ```bash
-openshell sandbox create --from ./ --forward 18789 -- openclaw-start
+openshell sandbox create --name my-openclaw-nvidia --from . --forward 18789 -- env CHAT_UI_URL=http://127.0.0.1:18789 openclaw-nvidia-start
 ```
 
-O helper `openclaw-start` executa:
+## Notes
 
-1. `openclaw onboard`
-2. `openclaw gateway run` em background
-3. imprime a URL local da UI
-
-## Policies
-
-### Padrão da imagem
-
-A imagem continua embutindo por padrão:
-
-```dockerfile
-COPY policy/base-policy.yaml /etc/openshell/policy.yaml
-```
-
-### Preset inspirado no upstream
-
-O preset `policy/presets/openclaw-upstream.yaml` traz regras alinhadas ao sandbox `openclaw` da NVIDIA para:
-
-- `claude_code`
-- `nvidia`
-- `nvidia_web`
-- `github_rest_api`
-
-### Composição pronta
-
-`policy/composed/openclaw-enterprise-azure.yaml` junta:
-
-- baseline customizada
-- npm
-- pypi
-- azure
-- azure-devops
-- microsoft-identity
-- github
-- regras OpenClaw upstream
-
-## Observações
-
-- A baseline continua deny-by-default para rede quando usada sozinha.
-- Os presets/composições permitem abrir acesso de forma intencional.
-- As versões de `gog`, `camsnap` e `openclaw` estão pinadas no Dockerfile para deixar o build mais reprodutível.
+- This package does **not** add the NeMoClaw DevX UI extension bundle from the upstream
+  source tree. It aligns to the `openclaw-nvidia` container/runtime model and startup flow,
+  but stays focused on your requested custom image and policy composition.
+- If you want full parity with the UI extension pieces (`policy-proxy.js`,
+  `inference-options.js`, extension bundle injection), that can be added in a next version.
