@@ -50,7 +50,7 @@ ENV NPM_CONFIG_PREFIX=/sandbox/.npm-global
 ENV PATH=/sandbox/.npm-global/bin:${PATH}
 
 # OpenClaw from source (Git URL/ref)
-ARG OPENCLAW_GIT_URL=https://github.com/openclaw/openclaw.git
+ARG OPENCLAW_GIT_URL=https://github.com/marcelferry/openclaw.git
 ARG OPENCLAW_GIT_REF=main
 RUN npm install -g "git+${OPENCLAW_GIT_URL}#${OPENCLAW_GIT_REF}"
 
