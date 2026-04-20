@@ -1,0 +1,26 @@
+version: 1
+network_policies:
+  openclaw_from_git:
+    name: openclaw-from-git
+    endpoints:
+      - host: github.com
+        port: 443
+      - host: api.github.com
+        port: 443
+        protocol: rest
+        tls: terminate
+        enforcement: enforce
+        access: read-only
+      - host: codeload.github.com
+        port: 443
+      - host: raw.githubusercontent.com
+        port: 443
+      - host: registry.npmjs.org
+        port: 443
+    binaries:
+      - path: /usr/bin/node
+      - path: /usr/bin/npm
+      - path: /usr/bin/npx
+      - path: /usr/bin/git
+      - path: /usr/bin/curl
+      - path: /bin/bash

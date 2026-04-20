@@ -1,14 +1,7 @@
 # syntax=docker/dockerfile:1.4
 
 # Custom sandbox aligned to NVIDIA OpenShell-Community sandboxes/openclaw-nvidia
-# Upstream reference:
-#   BASE_IMAGE=ghcr.io/nvidia/openshell-community/sandboxes/openclaw:latest
-#   add jq
-#   copy policy.yaml to /etc/openshell/policy.yaml
-#   copy openclaw-nvidia-start.sh
-#   install gRPC/js-yaml runtime deps for policy proxy
-#
-# This custom image preserves user-requested customizations when overlapping with upstream.
+# This version installs OpenClaw from source via configurable Git URL/ref.
 
 ARG BASE_IMAGE=ghcr.io/nvidia/openshell-community/sandboxes/openclaw:latest
 FROM ${BASE_IMAGE}
@@ -50,6 +43,17 @@ RUN /sandbox/.venv/bin/pip install --no-cache-dir \
     "yt-dlp[default]" \
     nano-pdf
 
+# npm global prefix inside /sandbox so the sandbox user can reinstall/update tools later
+RUN mkdir -p /sandbox/.npm-global \
+    && chown -R sandbox:sandbox /sandbox/.npm-global
+ENV NPM_CONFIG_PREFIX=/sandbox/.npm-global
+ENV PATH=/sandbox/.npm-global/bin:${PATH}
+
+# OpenClaw from source (Git URL/ref)
+ARG OPENCLAW_GIT_URL=https://github.com/openclaw/openclaw.git
+ARG OPENCLAW_GIT_REF=main
+RUN npm install -g "git+${OPENCLAW_GIT_URL}#${OPENCLAW_GIT_REF}"
+
 # gogcli pinned from user-provided reference
 ARG GOGCLI_VERSION=0.12.0
 RUN ARCH="$(dpkg --print-architecture)" && \
@@ -76,10 +80,7 @@ RUN ARCH="$(dpkg --print-architecture)" && \
     install -m 0755 /tmp/camsnap /usr/local/bin/camsnap && \
     rm -rf /tmp/camsnap /tmp/camsnap.tgz
 
-# Keep the upstream openclaw-nvidia runtime expectations:
-# - same policy location
-# - same startup script concept
-# - same extra runtime deps for policy proxy/gRPC sync
+# Keep the upstream openclaw-nvidia runtime expectations
 RUN mkdir -p /etc/openshell
 COPY policy/composed/enterprise-azure-openclaw-nvidia.yaml /etc/openshell/policy.yaml
 COPY scripts/openclaw-nvidia-start.sh /usr/local/bin/openclaw-nvidia-start
@@ -88,9 +89,6 @@ RUN chmod +x /usr/local/bin/openclaw-nvidia-start
 # Runtime deps used by upstream openclaw-nvidia policy-proxy stack
 RUN npm install -g @grpc/grpc-js @grpc/proto-loader js-yaml
 RUN npm install -g @hono/node-server@1.19.11
-RUN npm install -g tar@7.5.11 && npm --prefix "$(npm root -g)/openclaw" update tar || true
-
-RUN npm install -g git+https://github.com/<org-ou-user>/<repo>.git#minha-branch
 
 # Workspace prep
 RUN mkdir -p /sandbox/.openclaw /sandbox/shared /opt/company-data \

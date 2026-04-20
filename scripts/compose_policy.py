@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-import pathlib
-import sys
 import yaml
 
 def load_yaml(p):
