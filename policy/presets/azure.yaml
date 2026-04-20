@@ -1,0 +1,22 @@
+network_policies:
+  azure-management:
+    name: azure-management
+    binaries:
+      - /usr/bin/az
+      - /usr/local/bin/az
+    endpoints:
+      - host: management.azure.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: login.microsoftonline.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: graph.microsoft.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce

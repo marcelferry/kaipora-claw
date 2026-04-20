@@ -1,0 +1,16 @@
+network_policies:
+  npm:
+    name: npm
+    binaries:
+      - /usr/bin/node
+      - /usr/bin/npm
+      - /usr/bin/npx
+      - /usr/local/bin/node
+      - /usr/local/bin/npm
+      - /usr/local/bin/npx
+    endpoints:
+      - host: registry.npmjs.org
+        port: 443
+        protocol: rest
+        access: read-only
+        enforcement: enforce

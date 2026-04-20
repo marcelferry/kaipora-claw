@@ -1,0 +1,26 @@
+network_policies:
+  azure-devops:
+    name: azure-devops
+    binaries:
+      - /usr/bin/git
+      - /usr/bin/curl
+      - /usr/bin/node
+      - /usr/bin/npm
+      - /usr/local/bin/git
+      - /usr/local/bin/curl
+    endpoints:
+      - host: dev.azure.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: vssps.dev.azure.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: pkgs.dev.azure.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce

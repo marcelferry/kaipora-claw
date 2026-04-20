@@ -1,0 +1,89 @@
+version: 1
+filesystem_policy:
+  include_workdir: true
+  read_only:
+  - /usr
+  - /lib
+  - /proc
+  - /dev/urandom
+  - /app
+  - /etc
+  - /var/log
+  - /opt/company-data
+  read_write:
+  - /sandbox
+  - /tmp
+  - /dev/null
+  - /sandbox/shared
+landlock:
+  compatibility: best_effort
+process:
+  run_as_user: sandbox
+  run_as_group: sandbox
+network_policies:
+  npm:
+    name: npm
+    binaries:
+    - /usr/bin/node
+    - /usr/bin/npm
+    - /usr/bin/npx
+    - /usr/local/bin/node
+    - /usr/local/bin/npm
+    - /usr/local/bin/npx
+    endpoints:
+    - host: registry.npmjs.org
+      port: 443
+      protocol: rest
+      access: read-only
+      enforcement: enforce
+  pypi:
+    name: pypi
+    binaries:
+    - /sandbox/.venv/bin/pip
+    - /sandbox/.venv/bin/python
+    - /sandbox/.venv/bin/python3
+    - /usr/local/bin/pip
+    - /usr/local/bin/python
+    - /usr/local/bin/python3
+    - /usr/local/bin/uv
+    endpoints:
+    - host: pypi.org
+      port: 443
+      protocol: rest
+      access: read-only
+      enforcement: enforce
+    - host: files.pythonhosted.org
+      port: 443
+      protocol: rest
+      access: read-only
+      enforcement: enforce
+  github:
+    name: github
+    binaries:
+    - /usr/bin/git
+    - /usr/bin/gh
+    - /usr/bin/curl
+    - /usr/local/bin/git
+    - /usr/local/bin/gh
+    - /usr/local/bin/curl
+    endpoints:
+    - host: api.github.com
+      port: 443
+      protocol: rest
+      access: read-write
+      enforcement: enforce
+    - host: github.com
+      port: 443
+      protocol: rest
+      access: read-write
+      enforcement: enforce
+    - host: objects.githubusercontent.com
+      port: 443
+      protocol: rest
+      access: read-only
+      enforcement: enforce
+    - host: raw.githubusercontent.com
+      port: 443
+      protocol: rest
+      access: read-only
+      enforcement: enforce

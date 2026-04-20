@@ -1,0 +1,24 @@
+network_policies:
+  microsoft-identity:
+    name: microsoft-identity
+    binaries:
+      - /usr/bin/az
+      - /usr/local/bin/az
+      - /usr/bin/curl
+      - /usr/local/bin/curl
+    endpoints:
+      - host: login.microsoftonline.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: login.live.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+      - host: graph.microsoft.com
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
