@@ -55,10 +55,21 @@ RUN mkdir -p /sandbox/.npm-global \
 ENV NPM_CONFIG_PREFIX=/sandbox/.npm-global
 ENV PATH=/sandbox/.npm-global/bin:${PATH}
 
-# OpenClaw from source (Git URL/ref)
-ARG OPENCLAW_GIT_URL=https://github.com/marcelferry/openclaw.git
+# OpenClaw from source (build from cloned repo instead of npm git install)
+ARG OPENCLAW_GIT_URL=https://github.com/openclaw/openclaw.git
 ARG OPENCLAW_GIT_REF=main
-RUN npm install -g "git+${OPENCLAW_GIT_URL}#${OPENCLAW_GIT_REF}"
+
+RUN rm -rf /tmp/openclaw-src \
+    && git clone --depth 1 --branch "${OPENCLAW_GIT_REF}" "${OPENCLAW_GIT_URL}" /tmp/openclaw-src \
+    && cd /tmp/openclaw-src \
+    && corepack enable \
+    && curl -fsSL https://bun.sh/install | bash \
+    && export PATH="/root/.bun/bin:${PATH}" \
+    && pnpm install \
+    && pnpm build:docker \
+    && pnpm ui:build \
+    && pnpm qa:lab:build \
+    && npm install -g .
 
 # gogcli pinned from user-provided reference
 ARG GOGCLI_VERSION=0.12.0
