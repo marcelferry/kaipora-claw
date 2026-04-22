@@ -44,6 +44,7 @@ RUN mkdir -p /etc/apt/keyrings \
 
 # npm / Python tools requested by user
 RUN npm install -g mcporter
+
 RUN /sandbox/.venv/bin/pip install --no-cache-dir \
     openai-whisper \
     "yt-dlp[default]" \
@@ -52,16 +53,17 @@ RUN /sandbox/.venv/bin/pip install --no-cache-dir \
 # npm global prefix inside /sandbox so the sandbox user can reinstall/update tools later
 RUN mkdir -p /sandbox/.npm-global/bin \
     && chown -R sandbox:sandbox /sandbox/.npm-global
+
 ENV NPM_CONFIG_PREFIX=/sandbox/.npm-global
 ENV PATH=/sandbox/.npm-global/bin:${PATH}
 
 # OpenClaw from source (build from cloned repo instead of npm git install)
-ARG OPENCLAW_GIT_URL=https://github.com/openclaw/openclaw.git
+ARG OPENCLAW_GIT_URL=https://github.com/marcelferry/openclaw.git
 ARG OPENCLAW_GIT_REF=main
 
-RUN rm -rf /opt/openclaw-src \
-    && git clone --depth 1 --branch "${OPENCLAW_GIT_REF}" "${OPENCLAW_GIT_URL}" /opt/openclaw-src \
-    && cd /opt/openclaw-src \
+RUN rm -rf /app/openclaw \
+    && git clone --depth 1 --branch "${OPENCLAW_GIT_REF}" "${OPENCLAW_GIT_URL}" /app/openclaw \
+    && cd /app/openclaw \
     && corepack enable \
     && curl -fsSL https://bun.sh/install | bash \
     && export PATH="/root/.bun/bin:${PATH}" \
@@ -69,8 +71,17 @@ RUN rm -rf /opt/openclaw-src \
     && pnpm build:docker \
     && pnpm ui:build \
     && pnpm qa:lab:build \
-    && ln -sf /opt/openclaw-src/openclaw.mjs /sandbox/.npm-global/bin/openclaw \
-    && chmod +x /opt/openclaw-src/openclaw.mjs
+    && chmod +x /app/openclaw/openclaw.mjs \
+    && printf '%s\n' \
+      '#!/usr/bin/env bash' \
+      'exec node /app/openclaw/openclaw.mjs "$@"' \
+      > /usr/local/bin/openclaw \
+    && chmod +x /usr/local/bin/openclaw \
+    && printf '%s\n' \
+      '#!/usr/bin/env bash' \
+      'exec /usr/local/bin/openclaw "$@"' \
+      > /sandbox/.npm-global/bin/openclaw \
+    && chmod +x /sandbox/.npm-global/bin/openclaw
 
 ARG GOGCLI_VERSION=0.12.0
 RUN ARCH="$(dpkg --print-architecture)" && \
@@ -107,10 +118,15 @@ RUN npm install -g @hono/node-server@1.19.11
 
 RUN mkdir -p /sandbox/.local/bin /usr/local/bin \
     && ln -sf /usr/local/bin/gog /sandbox/.local/bin/gog \
-    && ln -sf /sandbox/.npm-global/bin/openclaw /usr/local/bin/openclaw \
     && ln -sf /usr/bin/node /usr/local/bin/node \
     && (ln -sf /usr/bin/npm /usr/local/bin/npm || true) \
     && (ln -sf /usr/bin/npx /usr/local/bin/npx || true)
+
+RUN grep -q '/sandbox/.npm-global/bin' /sandbox/.bashrc || \
+    printf '\nexport PATH="/sandbox/.npm-global/bin:$PATH"\n' >> /sandbox/.bashrc \
+    && grep -q '/sandbox/.npm-global/bin' /sandbox/.profile || \
+    printf '\nexport PATH="/sandbox/.npm-global/bin:$PATH"\n' >> /sandbox/.profile \
+    && chown sandbox:sandbox /sandbox/.bashrc /sandbox/.profile
 
 RUN mkdir -p /sandbox/.openclaw /sandbox/shared /opt/company-data /sandbox/bin /sandbox/src \
     && ln -sf /usr/local/bin/update-openclaw /sandbox/bin/update-openclaw.sh \

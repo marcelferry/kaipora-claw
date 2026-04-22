@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-REPO_URL="${1:-${OPENCLAW_GIT_URL:-https://github.com/openclaw/openclaw.git}}"
+REPO_URL="${1:-${OPENCLAW_GIT_URL:-https://github.com/marcelferry/openclaw.git}}"
 REPO_REF="${2:-${OPENCLAW_GIT_REF:-main}}"
 
-OPENCLAW_SRC_DIR="${OPENCLAW_SRC_DIR:-/sandbox/src/openclaw}"
+OPENCLAW_SRC_DIR="${OPENCLAW_SRC_DIR:-/app/openclaw}"
 OPENCLAW_INSTALL_BIN_DIR="${OPENCLAW_INSTALL_BIN_DIR:-/sandbox/.npm-global/bin}"
 OPENCLAW_INSTALL_LINK="${OPENCLAW_INSTALL_LINK:-${OPENCLAW_INSTALL_BIN_DIR}/openclaw}"
 
