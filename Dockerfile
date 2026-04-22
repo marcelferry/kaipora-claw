@@ -50,7 +50,7 @@ RUN /sandbox/.venv/bin/pip install --no-cache-dir \
     nano-pdf
 
 # npm global prefix inside /sandbox so the sandbox user can reinstall/update tools later
-RUN mkdir -p /sandbox/.npm-global \
+RUN mkdir -p /sandbox/.npm-global/bin \
     && chown -R sandbox:sandbox /sandbox/.npm-global
 ENV NPM_CONFIG_PREFIX=/sandbox/.npm-global
 ENV PATH=/sandbox/.npm-global/bin:${PATH}
