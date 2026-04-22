@@ -11,6 +11,8 @@ network_policies:
         tls: terminate
         enforcement: enforce
         access: read-only
+      - host: release-assets.githubusercontent.com
+        port: 443
     binaries:
       - path: /usr/bin/git
       - path: /usr/bin/gh

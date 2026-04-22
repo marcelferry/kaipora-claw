@@ -56,12 +56,12 @@ ENV NPM_CONFIG_PREFIX=/sandbox/.npm-global
 ENV PATH=/sandbox/.npm-global/bin:${PATH}
 
 # OpenClaw from source (build from cloned repo instead of npm git install)
-ARG OPENCLAW_GIT_URL=https://github.com/marcelferry/openclaw.git
+ARG OPENCLAW_GIT_URL=https://github.com/openclaw/openclaw.git
 ARG OPENCLAW_GIT_REF=main
 
-RUN rm -rf /tmp/openclaw-src \
-    && git clone --depth 1 --branch "${OPENCLAW_GIT_REF}" "${OPENCLAW_GIT_URL}" /tmp/openclaw-src \
-    && cd /tmp/openclaw-src \
+RUN rm -rf /opt/openclaw-src \
+    && git clone --depth 1 --branch "${OPENCLAW_GIT_REF}" "${OPENCLAW_GIT_URL}" /opt/openclaw-src \
+    && cd /opt/openclaw-src \
     && corepack enable \
     && curl -fsSL https://bun.sh/install | bash \
     && export PATH="/root/.bun/bin:${PATH}" \
@@ -69,9 +69,9 @@ RUN rm -rf /tmp/openclaw-src \
     && pnpm build:docker \
     && pnpm ui:build \
     && pnpm qa:lab:build \
-    && npm install -g .
+    && ln -sf /opt/openclaw-src/openclaw.mjs /sandbox/.npm-global/bin/openclaw \
+    && chmod +x /opt/openclaw-src/openclaw.mjs
 
-# gogcli pinned from user-provided reference
 ARG GOGCLI_VERSION=0.12.0
 RUN ARCH="$(dpkg --print-architecture)" && \
     case "$ARCH" in \
@@ -84,7 +84,6 @@ RUN ARCH="$(dpkg --print-architecture)" && \
     install -m 0755 /tmp/gog /usr/local/bin/gog && \
     rm -rf /tmp/gog /tmp/gogcli.tgz
 
-# camsnap pinned for reproducibility
 ARG CAMSNAP_VERSION=0.2.0
 RUN ARCH="$(dpkg --print-architecture)" && \
     case "$ARCH" in \
@@ -97,18 +96,24 @@ RUN ARCH="$(dpkg --print-architecture)" && \
     install -m 0755 /tmp/camsnap /usr/local/bin/camsnap && \
     rm -rf /tmp/camsnap /tmp/camsnap.tgz
 
-# Keep the upstream openclaw-nvidia runtime expectations
 RUN mkdir -p /etc/openshell
 COPY policy/composed/enterprise-azure-openclaw-nvidia.yaml /etc/openshell/policy.yaml
 COPY scripts/openclaw-nvidia-start.sh /usr/local/bin/openclaw-nvidia-start
-RUN chmod +x /usr/local/bin/openclaw-nvidia-start
+COPY scripts/update-openclaw.sh /usr/local/bin/update-openclaw
+RUN chmod +x /usr/local/bin/openclaw-nvidia-start /usr/local/bin/update-openclaw
 
-# Runtime deps used by upstream openclaw-nvidia policy-proxy stack
 RUN npm install -g @grpc/grpc-js @grpc/proto-loader js-yaml
 RUN npm install -g @hono/node-server@1.19.11
 
-# Workspace prep
-RUN mkdir -p /sandbox/.openclaw /sandbox/shared /opt/company-data \
+RUN mkdir -p /sandbox/.local/bin /usr/local/bin \
+    && ln -sf /usr/local/bin/gog /sandbox/.local/bin/gog \
+    && ln -sf /sandbox/.npm-global/bin/openclaw /usr/local/bin/openclaw \
+    && ln -sf /usr/bin/node /usr/local/bin/node \
+    && (ln -sf /usr/bin/npm /usr/local/bin/npm || true) \
+    && (ln -sf /usr/bin/npx /usr/local/bin/npx || true)
+
+RUN mkdir -p /sandbox/.openclaw /sandbox/shared /opt/company-data /sandbox/bin /sandbox/src \
+    && ln -sf /usr/local/bin/update-openclaw /sandbox/bin/update-openclaw.sh \
     && chown -R sandbox:sandbox /sandbox/.openclaw /sandbox/shared /opt/company-data /etc/openshell /sandbox
 
 USER sandbox

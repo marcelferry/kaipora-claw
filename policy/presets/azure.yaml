@@ -9,6 +9,9 @@ network_policies:
         port: 443
       - host: graph.microsoft.com
         port: 443
+      - host: packages.microsoft.com
+        port: 443
     binaries:
       - path: /usr/bin/az
       - path: /bin/bash
+      - path: /usr/bin/curl

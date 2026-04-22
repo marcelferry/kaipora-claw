@@ -9,7 +9,14 @@ network_policies:
         port: 443
       - host: accounts.google.com
         port: 443
+      - host: gmail.googleapis.com
+        port: 443
+      - host: people.googleapis.com
+        port: 443
+      - host: www.google.com
+        port: 443
     binaries:
       - path: /usr/bin/curl
       - path: /usr/bin/node
       - path: /bin/bash
+      - path: /sandbox/.local/bin/gog
