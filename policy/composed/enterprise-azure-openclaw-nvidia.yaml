@@ -16,6 +16,8 @@ filesystem_policy:
     - /tmp
     - /dev/null
     - /sandbox/shared
+    - /sandbox/.openclaw-data
+    - /sandbox/.nemoclaw
 
 landlock:
   compatibility: best_effort
@@ -25,6 +27,308 @@ process:
   run_as_group: sandbox
 
 network_policies:
+  claude_code:
+    name: claude_code
+    endpoints:
+      - host: api.anthropic.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: statsig.anthropic.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: sentry.io
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  nvidia:
+    name: nvidia
+    endpoints:
+      - host: integrate.api.nvidia.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: inference-api.nvidia.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  github:
+    name: github
+    endpoints:
+      - host: github.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: api.github.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  clawhub:
+    name: clawhub
+    endpoints:
+      - host: clawhub.ai
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  openclaw_api:
+    name: openclaw_api
+    endpoints:
+      - host: openclaw.ai
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  openclaw_docs:
+    name: openclaw_docs
+    endpoints:
+      - host: docs.openclaw.ai
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  npm_registry:
+    name: npm_registry
+    endpoints:
+      - host: registry.npmjs.org
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: registry.yarnpkg.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  # ── Messaging endpoints ──
+
+  telegram:
+    name: telegram
+    endpoints:
+      - host: api.telegram.org
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  discord:
+    name: discord
+    endpoints:
+      - host: discord.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: gateway.discord.gg
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: cdn.discordapp.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: media.discordapp.net
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  slack:
+    name: slack
+    endpoints:
+      - host: slack.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: api.slack.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: hooks.slack.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: wss-primary.slack.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: wss-backup.slack.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  # ── Package registries ──
+
+  pypi:
+    name: pypi
+    endpoints:
+      - host: pypi.org
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: files.pythonhosted.org
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  brew:
+    name: brew
+    endpoints:
+      - host: formulae.brew.sh
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: ghcr.io
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: raw.githubusercontent.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: objects.githubusercontent.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: pkg-containers.githubusercontent.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  # ── Third-party services ──
+
+  jira:
+    name: jira
+    endpoints:
+      - host: "*.atlassian.net"
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: api.atlassian.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: auth.atlassian.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  outlook:
+    name: outlook
+    endpoints:
+      - host: outlook.office365.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: outlook.office.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: graph.microsoft.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: login.microsoftonline.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  huggingface:
+    name: huggingface
+    endpoints:
+      - host: huggingface.co
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: cdn-lfs.huggingface.co
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+      - host: router.huggingface.co
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
+  brave:
+    name: brave
+    endpoints:
+      - host: api.search.brave.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        access: full
+    binaries:
+      - { path: "/**" }
+
   npm:
     name: npm
     endpoints:
@@ -63,9 +367,12 @@ network_policies:
         port: 443
       - host: graph.microsoft.com
         port: 443
+      - host: packages.microsoft.com
+        port: 443
     binaries:
       - path: /usr/bin/az
       - path: /bin/bash
+      - path: /usr/bin/curl
 
   azure_devops:
     name: azure-devops
@@ -80,6 +387,17 @@ network_policies:
       - path: /usr/bin/git
       - path: /usr/bin/curl
       - path: /bin/bash
+      - path: /usr/bin/python3*
+      - path: /usr/bin/pip*
+      - path: /usr/local/bin/python3*
+      - path: /usr/local/bin/pip*
+      - path: /sandbox/.venv/bin/python*
+      - path: /sandbox/.venv/bin/pip*
+      - path: /sandbox/.uv/python/**/python*
+      - path: /sandbox/.local/bin/pip*
+      - path: /usr/lib/git-core/git-remote-http
+      - path: /usr/local/bin/node
+      - path: /usr/bin/node
 
   microsoft_identity:
     name: microsoft-identity
@@ -123,8 +441,18 @@ network_policies:
     endpoints:
       - host: github.com
         port: 443
+      - host: api.github.com
+        port: 443
+        protocol: rest
+        tls: terminate
+        enforcement: enforce
+        access: read-only
+      - host: release-assets.githubusercontent.com
+        port: 443
     binaries:
       - path: /usr/bin/git
+      - path: /usr/bin/gh
+      - path: /usr/bin/curl
 
   github_rest_api:
     name: github-rest-api
@@ -153,14 +481,6 @@ network_policies:
     endpoints:
       - host: navigator.navigator.svc.cluster.local
         port: 8080
-    binaries:
-      - path: /usr/bin/node
-
-  allow_registry_npmjs_org_443:
-    name: allow_registry_npmjs_org_443
-    endpoints:
-      - host: registry.npmjs.org
-        port: 443
     binaries:
       - path: /usr/bin/node
 
