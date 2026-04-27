@@ -71,17 +71,7 @@ RUN rm -rf /app/openclaw \
     && pnpm build:docker \
     && pnpm ui:build \
     && pnpm qa:lab:build \
-    && chmod +x /app/openclaw/openclaw.mjs \
-    && printf '%s\n' \
-      '#!/usr/bin/env bash' \
-      'exec node /app/openclaw/openclaw.mjs "$@"' \
-      > /usr/local/bin/openclaw \
-    && chmod +x /usr/local/bin/openclaw \
-    && printf '%s\n' \
-      '#!/usr/bin/env bash' \
-      'exec /usr/local/bin/openclaw "$@"' \
-      > /sandbox/.npm-global/bin/openclaw \
-    && chmod +x /sandbox/.npm-global/bin/openclaw
+    && chmod +x /app/openclaw/openclaw.mjs
 
 ARG GOGCLI_VERSION=0.12.0
 RUN ARCH="$(dpkg --print-architecture)" && \
@@ -111,7 +101,19 @@ RUN mkdir -p /etc/openshell
 COPY policy/composed/enterprise-azure-openclaw-nvidia.yaml /etc/openshell/policy.yaml
 COPY scripts/openclaw-nvidia-start.sh /usr/local/bin/openclaw-nvidia-start
 COPY scripts/update-openclaw.sh /usr/local/bin/update-openclaw
-RUN chmod +x /usr/local/bin/openclaw-nvidia-start /usr/local/bin/update-openclaw
+COPY scripts/node-openclaw-os-shim.cjs /usr/local/lib/node-openclaw-os-shim.cjs
+RUN chmod +x /usr/local/bin/openclaw-nvidia-start /usr/local/bin/update-openclaw \
+    && chmod 644 /usr/local/lib/node-openclaw-os-shim.cjs \
+    && printf '%s\n' \
+      '#!/usr/bin/env bash' \
+      'exec node --require /usr/local/lib/node-openclaw-os-shim.cjs /app/openclaw/openclaw.mjs "$@"' \
+      > /usr/local/bin/openclaw \
+    && chmod +x /usr/local/bin/openclaw \
+    && printf '%s\n' \
+      '#!/usr/bin/env bash' \
+      'exec /usr/local/bin/openclaw "$@"' \
+      > /sandbox/.npm-global/bin/openclaw \
+    && chmod +x /sandbox/.npm-global/bin/openclaw
 
 RUN npm install -g @grpc/grpc-js @grpc/proto-loader js-yaml
 RUN npm install -g @hono/node-server@1.19.11

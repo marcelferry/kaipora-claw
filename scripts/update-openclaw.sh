@@ -90,8 +90,8 @@ install_launcher() {
 
   [[ -f "openclaw.mjs" ]] || fail "Arquivo openclaw.mjs não encontrado após build"
 
-  log "Publicando launcher em $OPENCLAW_INSTALL_LINK"
-  ln -sf "$OPENCLAW_SRC_DIR/openclaw.mjs" "$OPENCLAW_INSTALL_LINK"
+  log "Publicando launcher em $OPENCLAW_INSTALL_LINK (wrapper com shim os.networkInterfaces)"
+  ln -sf /usr/local/bin/openclaw "$OPENCLAW_INSTALL_LINK"
   chmod +x "$OPENCLAW_SRC_DIR/openclaw.mjs"
 
   log "Validação final"
