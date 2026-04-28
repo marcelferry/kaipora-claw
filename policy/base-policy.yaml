@@ -16,6 +16,7 @@ filesystem_policy:
     - /tmp
     - /dev/null
     - /sandbox/shared
+    - /run/user
 
 landlock:
   compatibility: best_effort

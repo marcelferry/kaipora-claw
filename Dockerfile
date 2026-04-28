@@ -31,6 +31,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# systemd --user: user@… + linger para o sandbox poder usar unit files em ~/.config/systemd/user
+RUN apt-get update && apt-get install -y --no-install-recommends dbus-user-session \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /var/lib/systemd/linger /sandbox/.config/systemd/user \
+    && touch /var/lib/systemd/linger/sandbox \
+    && chown -R sandbox:sandbox /sandbox/.config/systemd
+
 # Azure CLI
 RUN mkdir -p /etc/apt/keyrings \
     && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg \
@@ -129,6 +136,10 @@ RUN grep -q '/sandbox/.npm-global/bin' /sandbox/.bashrc || \
     printf '\nexport PATH="/sandbox/.npm-global/bin:$PATH"\n' >> /sandbox/.bashrc \
     && grep -q '/sandbox/.npm-global/bin' /sandbox/.profile || \
     printf '\nexport PATH="/sandbox/.npm-global/bin:$PATH"\n' >> /sandbox/.profile \
+    && grep -q 'systemd --user (dbus session / linger)' /sandbox/.bashrc || \
+    printf '\n# systemd --user (dbus session / linger)\nif [ -z "${XDG_RUNTIME_DIR:-}" ] && [ -n "${UID:-}" ] && [ -d "/run/user/${UID}" ]; then export XDG_RUNTIME_DIR="/run/user/${UID}"; fi\n' >> /sandbox/.bashrc \
+    && grep -q 'systemd --user (dbus session / linger)' /sandbox/.profile || \
+    printf '\n# systemd --user (dbus session / linger)\nif [ -z "${XDG_RUNTIME_DIR:-}" ] && [ -n "${UID:-}" ] && [ -d "/run/user/${UID}" ]; then export XDG_RUNTIME_DIR="/run/user/${UID}"; fi\n' >> /sandbox/.profile \
     && chown sandbox:sandbox /sandbox/.bashrc /sandbox/.profile
 
 RUN mkdir -p /sandbox/.openclaw /sandbox/shared /opt/company-data /sandbox/bin /sandbox/src \

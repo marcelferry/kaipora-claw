@@ -18,6 +18,8 @@ filesystem_policy:
     - /sandbox/shared
     - /sandbox/.openclaw-data
     - /sandbox/.nemoclaw
+    # Runtime do systemd --user (dbus, sockets) quando o host inicia user@uid
+    - /run/user
 
 landlock:
   compatibility: best_effort
