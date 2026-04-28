@@ -71,7 +71,8 @@ RUN rm -rf /app/openclaw \
     && pnpm build:docker \
     && pnpm ui:build \
     && pnpm qa:lab:build \
-    && chmod +x /app/openclaw/openclaw.mjs
+    && chmod +x /app/openclaw/openclaw.mjs \
+    && chown -R sandbox:sandbox /app/openclaw
 
 ARG GOGCLI_VERSION=0.12.0
 RUN ARCH="$(dpkg --print-architecture)" && \
