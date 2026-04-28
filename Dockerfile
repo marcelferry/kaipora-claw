@@ -59,7 +59,7 @@ ENV PATH=/sandbox/.npm-global/bin:${PATH}
 
 # OpenClaw from source (build from cloned repo instead of npm git install)
 ARG OPENCLAW_GIT_URL=https://github.com/marcelferry/openclaw.git
-ARG OPENCLAW_GIT_REF=main
+ARG OPENCLAW_GIT_REF=v2026.4.25
 
 RUN rm -rf /app/openclaw \
     && git clone --depth 1 --branch "${OPENCLAW_GIT_REF}" "${OPENCLAW_GIT_URL}" /app/openclaw \
