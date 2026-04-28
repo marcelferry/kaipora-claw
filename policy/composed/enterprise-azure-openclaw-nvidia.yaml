@@ -15,6 +15,10 @@ filesystem_policy:
     - /sandbox
     - /tmp
     - /dev/null
+    - /dev/tty
+    - /dev/pts
+    - /dev/ptmx
+    - /dev/pts/ptmx
     - /sandbox/shared
     - /sandbox/.openclaw-data
     - /sandbox/.nemoclaw
@@ -336,6 +340,7 @@ network_policies:
     endpoints:
       - host: registry.npmjs.org
         port: 443
+        tls: skip
     binaries:
       - path: /usr/bin/node
       - path: /usr/bin/npm
