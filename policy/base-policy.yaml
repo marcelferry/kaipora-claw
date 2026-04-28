@@ -15,6 +15,10 @@ filesystem_policy:
     - /sandbox
     - /tmp
     - /dev/null
+    - /dev/tty
+    - /dev/pts
+    - /dev/ptmx
+    - /dev/pts/ptmx
     - /sandbox/shared
     - /run/user
 
